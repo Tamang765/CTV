@@ -1,0 +1,31 @@
+{
+  "name": "UKTV-archive-ctv",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "check": "npm run lint && npm run build"
+  },
+  "dependencies": {
+    "@noriginmedia/norigin-spatial-navigation": "3.3.0",
+    "preact": "10.29.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@preact/preset-vite": "2.10.6",
+    "@types/node": "22.20.3",
+    "eslint": "10.10.0",
+    "globals": "17.12.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0",
+    "vite": "8.3.0"
+  }
+}

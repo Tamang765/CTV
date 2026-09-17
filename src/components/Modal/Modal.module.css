@@ -1,0 +1,15 @@
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-strong);
+}
+.modal {
+  border-radius: 18px;
+  border: 1px solid var(--border-muted);
+  background: var(--surface-contrast);
+  box-shadow: 0 35px 120px var(--shadow-strong);
+}

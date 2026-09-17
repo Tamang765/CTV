@@ -1,0 +1,60 @@
+/* Primitives shared across screens: typographic eyebrow, screen-top action
+   row, dialog action bar, state panels and the results grid. */
+.eyebrow {
+  color: var(--accent-text);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2.7px;
+}
+.detailTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.keyboardActions {
+  display: flex;
+  gap: 12px;
+}
+.keyboardActions button {
+  padding: 13px 18px;
+}
+.keyboardActions button:last-child {
+  margin-left: auto;
+}
+.state {
+  height: 100%;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  text-align: center;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--accent) 6%, transparent),
+    transparent 70%
+  );
+}
+.state > svg {
+  color: var(--accent);
+}
+.state h3 {
+  font-size: 34px;
+  font-weight: 500;
+}
+.state p {
+  color: var(--text-muted);
+  font-size: 22px;
+  max-width: 940px;
+  overflow-wrap: anywhere;
+}
+.state button {
+  margin-top: 8px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 4), minmax(0, 1fr));
+  gap: 26px;
+}

@@ -1,0 +1,40 @@
+.focusable {
+  outline: 3px solid transparent;
+  outline-offset: 3px;
+  transition:
+    background 0.14s,
+    border-color 0.14s,
+    outline-color 0.14s;
+}
+.focusable[data-focused],
+.focusable:focus-visible {
+  outline-color: var(--focus);
+}
+.focusable:hover {
+  border-color: var(--accent-soft);
+}
+.small,
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 23px;
+  min-height: 60px;
+  font-size: 22px;
+  border-radius: 7px;
+  border: 1px solid var(--border-muted);
+  background: var(--surface);
+  white-space: nowrap;
+}
+.small[data-focused] {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}

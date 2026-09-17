@@ -1,0 +1,77 @@
+.card {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 237px;
+  border: 1px solid var(--border-soft);
+  padding: 3px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--surface);
+  text-align: left;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.14s,
+    background 0.14s;
+}
+.card[data-focused] {
+  transform: scale(1.06);
+  z-index: 2;
+  border-color: var(--accent);
+  box-shadow: 0 16px 40px var(--shadow-strong);
+  outline-offset: 0;
+}
+.card:active {
+  transform: scale(0.99);
+}
+.cardArt {
+  position: relative;
+  height: 143px;
+  overflow: hidden;
+  background: var(--surface-alt);
+}
+.cardImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 6px 6px 0;
+}
+.cardBody {
+  height: 92px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cardBody > div {
+  min-width: 0;
+}
+.card h3 {
+  font-size: 24px;
+  font-weight: 550;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.card p {
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+}
+.cardArrow {
+  margin-left: auto;
+  color: var(--text-strong);
+  opacity: 0;
+}
+.card[data-focused] .cardArrow {
+  opacity: 1;
+}

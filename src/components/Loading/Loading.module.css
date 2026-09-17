@@ -1,0 +1,46 @@
+.skeleton {
+  height: 225px;
+  padding: 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  background: var(--surface);
+  animation: pulse 1.8s ease-in-out infinite alternate;
+}
+.skeleton > div {
+  height: 130px;
+  background: var(--surface-alt);
+  border-radius: 5px;
+}
+.skeleton span {
+  display: block;
+  margin-top: 16px;
+  height: 12px;
+  width: 75%;
+  background: var(--surface-strong);
+  border-radius: 4px;
+}
+.skeleton span:last-child {
+  width: 45%;
+  height: 8px;
+}
+.skeletonRow {
+  display: contents;
+}
+.spinner {
+  width: 23px;
+  height: 23px;
+  border: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes pulse {
+  to {
+    opacity: 0.45;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

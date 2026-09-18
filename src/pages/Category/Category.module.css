@@ -1,0 +1,45 @@
+.hero {
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-soft);
+}
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  padding-top: 22px;
+}
+.hero h1 {
+  font-size: 64px;
+  letter-spacing: -2.8px;
+  line-height: 1.2;
+  font-weight: 550;
+  margin: 15px 0;
+}
+.hero h1 em {
+  color: var(--accent-text);
+  font-style: normal;
+}
+.hero p {
+  color: var(--text-muted);
+  font-size: 23px;
+  line-height: 1.5;
+}
+.content {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.results {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px 14px 16px;
+  margin: -14px -14px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary-soft) transparent;
+  overscroll-behavior: contain;
+}

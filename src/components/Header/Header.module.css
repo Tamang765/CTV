@@ -1,0 +1,28 @@
+.topbar {
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  letter-spacing: 2.3px;
+  color: var(--text-muted);
+}
+.topbar strong {
+  color: var(--text-strong);
+  font-weight: 500;
+}
+.archiveLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  letter-spacing: 1.7px;
+}
+.archiveLabel i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 30%, transparent);
+}

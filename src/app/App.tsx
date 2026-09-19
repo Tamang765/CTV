@@ -69,7 +69,7 @@ export function App() {
 
   const closeDetails = useCallback(() => {
     setSelected(null);
-    focus("search");
+    restoreFocus();
   }, [restoreFocus]);
   // While a detail page is open, Back (ESC/BrowserBack/Backspace) closes it.
   useBackNavigation(closeDetails, !!selected);

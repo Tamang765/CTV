@@ -49,6 +49,7 @@ export function useSearch(category: Category | null, query: string) {
       : fetchCategory(category, controller.signal);
     void load.then(
       (page) => {
+        if (controller.signal.aborted) return;
         setSnapshot({
           category,
           query: cleanQuery,
@@ -64,6 +65,7 @@ export function useSearch(category: Category | null, query: string) {
         });
       },
       (error: unknown) => {
+        if (controller.signal.aborted) return;
         setSnapshot({
           category,
           query: cleanQuery,
@@ -105,6 +107,7 @@ export function useSearch(category: Category | null, query: string) {
       });
       void readCategoryPage(active, nextUrl, controller.signal).then(
         (page) => {
+          if (controller.signal.aborted) return;
           if (moreRef.current === controller) moreRef.current = null;
           setSnapshot((prev) => {
             if (
@@ -130,6 +133,7 @@ export function useSearch(category: Category | null, query: string) {
           });
         },
         (error: unknown) => {
+          if (controller.signal.aborted) return;
           if (moreRef.current === controller) moreRef.current = null;
           setSnapshot((prev) => {
             if (

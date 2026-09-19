@@ -3,23 +3,35 @@ import { fetchCategory } from "../api/swapi";
 import type { Entity } from "../types/entities";
 import { errorMessage } from "../utils/errors";
 
-type FeedState =
-  | { status: "loading" }
-  | { status: "success"; data: Entity[]; total: number }
-  | { status: "error"; message: string };
+export interface HomeFeedPage {
+  data: Entity[];
+  total: number;
+}
 
 export type FeedCategory = "films" | "people" | "starships";
 
-function useFeedCategory(category: FeedCategory) {
+type HomeFeedState =
+  | { status: "loading" }
+  | { status: "success"; feeds: Record<FeedCategory, HomeFeedPage> }
+  | { status: "error"; message: string };
+
+export function useHomeFeed() {
   const [attempt, setAttempt] = useState(0);
-  const [state, setState] = useState<FeedState>({ status: "loading" });
+  const [state, setState] = useState<HomeFeedState>({ status: "loading" });
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetchCategory(category, controller.signal).then(
-      (page) => {
+    void Promise.all([
+      fetchCategory("films", controller.signal),
+      fetchCategory("people", controller.signal),
+      fetchCategory("starships", controller.signal),
+    ]).then(
+      ([films, people, starships]) => {
         if (!controller.signal.aborted)
-          setState({ status: "success", data: page.data, total: page.total });
+          setState({
+            status: "success",
+            feeds: { films, people, starships },
+          });
       },
       (error: unknown) => {
         if (!controller.signal.aborted) {
@@ -31,7 +43,7 @@ function useFeedCategory(category: FeedCategory) {
       },
     );
     return () => controller.abort();
-  }, [category, attempt]);
+  }, [attempt]);
 
   return {
     state,
@@ -40,11 +52,4 @@ function useFeedCategory(category: FeedCategory) {
       setAttempt((value) => value + 1);
     },
   };
-}
-
-export function useHomeFeed() {
-  const films = useFeedCategory("films");
-  const people = useFeedCategory("people");
-  const starships = useFeedCategory("starships");
-  return { films, people, starships };
 }

@@ -13,25 +13,18 @@ import type { Category as CategoryType } from "../types/common";
 import type { Entity } from "../types/entities";
 import { cardKey, focus, homeItemKey } from "../utils/navigation";
 import styles from "./App.module.css";
-import { readInitialLocation, routeFor } from "./routes";
+import { readInitialCategory } from "./routes";
 
 export function App() {
-  const [initial] = useState(readInitialLocation);
   const [category, setCategory] = useState<CategoryType | null>(
-    initial.category,
+    readInitialCategory,
   );
-  const [invalidCategory, setInvalidCategory] = useState(initial.invalid);
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState<Entity | null>(null);
-  const { state, retry, loadMore, retryMore } = useSearch(
-    invalidCategory ? null : category,
-    query,
-  );
+  const { state, retry, loadMore } = useSearch(category, query);
   const scale = useStageScale();
   const { returnFocus, restoreFocus } = useFocusRestore("search");
-  const showHome = category === null && !invalidCategory;
-  const route = routeFor(category, selected, searchOpen);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
@@ -39,6 +32,7 @@ export function App() {
     );
     return () => cancelAnimationFrame(frame);
   }, [category]);
+
   const clearQuery = useCallback(() => {
     setQuery("");
     focus("search");
@@ -46,7 +40,6 @@ export function App() {
   const chooseCategory = (next: CategoryType) => {
     setCategory(next);
     setQuery("");
-    setInvalidCategory(false);
     const url = new URL(window.location.href);
     url.searchParams.set("category", next);
     window.history.replaceState(null, "", url);
@@ -55,7 +48,6 @@ export function App() {
   const goHome = useCallback(() => {
     setCategory(null);
     setQuery("");
-    setInvalidCategory(false);
     const url = new URL(window.location.href);
     url.searchParams.delete("category");
     window.history.replaceState(null, "", url);
@@ -78,13 +70,14 @@ export function App() {
     setSearchOpen(false);
     restoreFocus("search");
   }, [restoreFocus]);
+
   const openHomeEntity = (entity: Entity) => {
     returnFocus.current = homeItemKey(entity);
     setSelected(entity);
   };
 
   return (
-    <div className={styles.viewport} data-route={route}>
+    <div className={styles.viewport}>
       <div
         className={styles.stage}
         style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
@@ -99,8 +92,6 @@ export function App() {
           >
             <CategoryNav
               category={category}
-              invalidCategory={invalidCategory}
-              showHome={showHome}
               onHome={goHome}
               onChoose={chooseCategory}
             />
@@ -116,23 +107,14 @@ export function App() {
                   category={category}
                   query={query}
                   state={state}
-                  invalidCategory={invalidCategory}
                   onSearch={() => setSearchOpen(true)}
                   onClearSearch={clearQuery}
-                  onReset={() => {
-                    goHome();
-                    focus("nav-home");
-                  }}
-                  onRetry={() => {
-                    focus("search");
-                    retry();
-                  }}
+                  onRetry={retry}
                   onOpenEntity={(entity) => {
                     returnFocus.current = cardKey(entity);
                     setSelected(entity);
                   }}
                   onLoadMore={loadMore}
-                  onRetryMore={retryMore}
                 />
               )}
             </main>

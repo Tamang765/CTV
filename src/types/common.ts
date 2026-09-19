@@ -19,7 +19,6 @@ export type CategoryIcon =
 export interface CategoryMeta {
   label: string;
   icon: CategoryIcon;
-  tagline: string;
 }
 
 export interface Stat {

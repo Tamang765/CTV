@@ -1,13 +1,4 @@
 import type {
-  Film,
-  Person,
-  Planet,
-  Species,
-  Starship,
-  Vehicle,
-} from "../types/entities";
-import type { TransportationAttributes } from "../types/vehicle";
-import type {
   SwapiFilm,
   SwapiPerson,
   SwapiPlanet,
@@ -16,9 +7,19 @@ import type {
   SwapiTransportation,
   SwapiVehicle,
 } from "../types/api";
+import type {
+  Film,
+  Person,
+  Planet,
+  Species,
+  Starship,
+  Vehicle,
+} from "../types/entities";
+import type { TransportationAttributes } from "../types/vehicle";
 
 // Stable API resource IDs also identify focus targets.
-const idFromUrl = (url: string): string => url.split("/").filter(Boolean).at(-1)!;
+const idFromUrl = (url: string): string =>
+  url.split("/").filter(Boolean).at(-1)!;
 
 export const mapPlanet = (r: SwapiPlanet): Planet => ({
   id: idFromUrl(r.url),

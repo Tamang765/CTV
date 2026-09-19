@@ -17,6 +17,26 @@ export function synchronizeFocus(key: string) {
   if (getCurrentFocusKey() !== key) focus(key);
 }
 
+export function trapTab(event: KeyboardEvent, container: HTMLElement | null) {
+  if (event.key !== "Tab") return false;
+  event.preventDefault();
+  const buttons = [
+    ...(container?.querySelectorAll<HTMLButtonElement>("button") ?? []),
+  ];
+  if (buttons.length === 0) return true;
+  const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+  const next =
+    current < 0
+      ? event.shiftKey
+        ? buttons.length - 1
+        : 0
+      : (current + (event.shiftKey ? -1 : 1) + buttons.length) %
+        buttons.length;
+  const key = buttons[next]?.dataset.focusKey;
+  if (key) focus(key);
+  return true;
+}
+
 export function reveal(node: HTMLElement) {
   const nodeBox = node.getBoundingClientRect();
   const strip = node.closest("[data-strip]");

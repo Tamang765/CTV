@@ -1,4 +1,3 @@
-import { isCategory } from "../constants/categories";
 import type {
   SwapiCollection,
   SwapiFilm,
@@ -25,44 +24,26 @@ import {
 // Additional pages stay in the mounted search hook, not a global cache.
 const cache = new Map<Category, CollectionPage>();
 
-type SwapiRecord =
-  | SwapiFilm
-  | SwapiPerson
-  | SwapiPlanet
-  | SwapiSpecies
-  | SwapiStarship
-  | SwapiVehicle;
-
-// Each mapper targets its concrete SWAPI shape; the record union is narrowed
-// once per category here instead of via repeated casts at every call site.
-const recordMappers: Record<Category, (record: SwapiRecord) => Entity> = {
-  planets: (record) => mapPlanet(record as SwapiPlanet),
-  people: (record) => mapPerson(record as SwapiPerson),
-  starships: (record) => mapStarship(record as SwapiStarship),
-  vehicles: (record) => mapVehicle(record as SwapiVehicle),
-  species: (record) => mapSpecies(record as SwapiSpecies),
-  films: (record) => mapFilm(record as SwapiFilm),
-};
-
-function mapRecords(category: Category, records: SwapiRecord[]): Entity[] {
-  const mapper = recordMappers[category];
-  return records.map(mapper);
+function mapRecords(category: Category, records: unknown[]): Entity[] {
+  switch (category) {
+    case "planets":
+      return records.map((record) => mapPlanet(record as SwapiPlanet));
+    case "people":
+      return records.map((record) => mapPerson(record as SwapiPerson));
+    case "starships":
+      return records.map((record) => mapStarship(record as SwapiStarship));
+    case "vehicles":
+      return records.map((record) => mapVehicle(record as SwapiVehicle));
+    case "species":
+      return records.map((record) => mapSpecies(record as SwapiSpecies));
+    case "films":
+      return records.map((record) => mapFilm(record as SwapiFilm));
+  }
 }
 
 function malformed(): Error {
   return new Error(
     "The archive returned an unexpected format. Please try again.",
-  );
-}
-
-function isCollection(value: unknown): value is SwapiCollection<SwapiRecord> {
-  if (typeof value !== "object" || value === null) return false;
-  const page = value as SwapiCollection<SwapiRecord>;
-  return (
-    Array.isArray(page.results) &&
-    Number.isSafeInteger(page.count) &&
-    page.count >= 0 &&
-    (page.next === null || typeof page.next === "string")
   );
 }
 
@@ -81,10 +62,6 @@ export async function fetchCategory(
   category: Category,
   signal: AbortSignal,
 ): Promise<CollectionPage> {
-  if (!isCategory(category))
-    throw new Error(
-      "This category does not exist. Choose a category from the menu.",
-    );
   signal.throwIfAborted();
   const cached = cache.get(category);
   if (cached) return cached;
@@ -121,8 +98,7 @@ export async function readCategoryPage(
   url: string,
   signal: AbortSignal,
 ): Promise<CollectionPage> {
-  const envelope = await request<unknown>(url, signal);
-  if (!isCollection(envelope)) throw malformed();
+  const envelope = await request<SwapiCollection<unknown>>(url, signal);
   return {
     data: mapRecords(category, envelope.results),
     total: envelope.count,

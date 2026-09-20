@@ -1,8 +1,8 @@
-import { CATEGORY_META } from "../../../constants/categories";
-import type { Entity } from "../../../types/entities";
 import { Button } from "../../../components/Button/Button";
 import { Icon } from "../../../components/Icon/Icon";
+import { CATEGORY_META } from "../../../constants/categories";
 import ui from "../../../styles/ui.module.css";
+import type { Entity } from "../../../types/entities";
 
 export function DetailActions({
   category,
@@ -16,9 +16,7 @@ export function DetailActions({
   const label = CATEGORY_META[category];
   return (
     <div className={ui.detailTop}>
-      <span className={ui.eyebrow}>
-        THE STAR WARS EXPLORER / {label.label.toUpperCase()}
-      </span>
+      <span className={ui.eyebrow}>{label.label.toUpperCase()}</span>
       <Button
         variant="small"
         id="detail-back"

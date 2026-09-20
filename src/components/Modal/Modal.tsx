@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import { focus } from "../../utils/navigation";
 import { isBackKey } from "../../constants/keys";
+import { focus, trapTab } from "../../utils/navigation";
 import { FocusRegion } from "../Focusable/Focusable";
 import styles from "./Modal.module.css";
 
@@ -32,26 +32,10 @@ export function Modal({
   useEffect(() => {
     const frame = requestAnimationFrame(() => focus(initialFocus));
     const handleKey = (event: KeyboardEvent) => {
+      if (trapTab(event, dialogRef.current)) return;
       if (isBackKey(event) || (closeOnBackspace && event.key === "Backspace")) {
         event.preventDefault();
         onClose();
-      }
-      // Native Tab must not escape the remote focus boundary into the background.
-      if (event.key === "Tab") {
-        event.preventDefault();
-        const buttons = [
-          ...(dialogRef.current?.querySelectorAll<HTMLButtonElement>(
-            "button",
-          ) ?? []),
-        ];
-        const current = buttons.indexOf(
-          document.activeElement as HTMLButtonElement,
-        );
-        const next =
-          (current + (event.shiftKey ? -1 : 1) + buttons.length) %
-          buttons.length;
-        const key = buttons[next]?.dataset.focusKey;
-        if (key) focus(key);
       }
     };
     window.addEventListener("keydown", handleKey);

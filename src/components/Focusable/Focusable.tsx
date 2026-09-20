@@ -2,7 +2,7 @@ import {
   FocusContext,
   useFocusable,
 } from "@noriginmedia/norigin-spatial-navigation";
-import type { ComponentChildren, JSX } from "preact";
+import type { ComponentChildren, CSSProperties } from "preact";
 import { focus, reveal, synchronizeFocus } from "../../utils/navigation";
 import styles from "../Button/Button.module.css";
 
@@ -72,7 +72,7 @@ export function FocusRegion({
   preferred?: string;
   boundary?: boolean;
   label?: string;
-  style?: JSX.CSSProperties;
+  style?: CSSProperties;
 }) {
   const { ref, focusKey } = useFocusable<object, HTMLDivElement>({
     focusKey: id,

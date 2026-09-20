@@ -28,9 +28,10 @@ export function SearchKeyboard({
   const [draft, setDraft] = useState(query);
   const add = (value: string) =>
     setDraft((text) => (text + value).slice(0, SEARCH_QUERY_LIMIT));
+  const remove = () => setDraft((text) => text.slice(0, -1));
   useRemoteKeys({
     onAppend: add,
-    onDelete: () => setDraft((text) => text.slice(0, -1)),
+    onDelete: remove,
   });
 
   return (
@@ -42,7 +43,7 @@ export function SearchKeyboard({
       className={searchStyles.keyboardModal}
     >
       <div className={ui.detailTop}>
-        <span className={ui.eyebrow}>FIND SOMETHING EXTRAORDINARY</span>
+        <span></span>
         <Button
           variant="small"
           id="close-search"
@@ -116,7 +117,7 @@ export function SearchKeyboard({
         <Button
           variant="small"
           id="key-delete"
-          onPress={() => setDraft((text) => text.slice(0, -1))}
+          onPress={remove}
         >
           ⌫ Delete
         </Button>

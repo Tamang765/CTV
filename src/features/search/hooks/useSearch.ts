@@ -12,37 +12,30 @@ export type SearchState =
       total: number;
       next: string | null;
       loadingMore: boolean;
-      moreError: string | null;
     }
   | { status: "error"; message: string };
 
-interface Snapshot {
-  category: Category | null;
-  query: string;
-  attempt: number;
+interface SearchResult {
+  key: string;
   state: SearchState;
 }
+
+const LOADING_STATE: SearchState = { status: "loading" };
 
 export function useSearch(category: Category | null, query: string) {
   const cleanQuery = query.trim();
   const [attempt, setAttempt] = useState(0);
-  const [snapshot, setSnapshot] = useState<Snapshot>({
-    category,
-    query: cleanQuery,
-    attempt: 0,
-    state: { status: "loading" },
+  const requestKey = JSON.stringify([category, cleanQuery, attempt]);
+  const [result, setResult] = useState<SearchResult>({
+    key: requestKey,
+    state: LOADING_STATE,
   });
   const moreRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!category) return;
     const controller = new AbortController();
-    setSnapshot({
-      category,
-      query: cleanQuery,
-      attempt,
-      state: { status: "loading" },
-    });
+    setResult({ key: requestKey, state: LOADING_STATE });
 
     const load = cleanQuery
       ? searchCategory(category, cleanQuery, controller.signal)
@@ -50,26 +43,21 @@ export function useSearch(category: Category | null, query: string) {
     void load.then(
       (page) => {
         if (controller.signal.aborted) return;
-        setSnapshot({
-          category,
-          query: cleanQuery,
-          attempt,
+        setResult({
+          key: requestKey,
           state: {
             status: "success",
             data: page.data,
             total: page.total,
             next: page.next,
             loadingMore: false,
-            moreError: null,
           },
         });
       },
       (error: unknown) => {
         if (controller.signal.aborted) return;
-        setSnapshot({
-          category,
-          query: cleanQuery,
-          attempt,
+        setResult({
+          key: requestKey,
           state: { status: "error", message: errorMessage(error) },
         });
       },
@@ -79,108 +67,58 @@ export function useSearch(category: Category | null, query: string) {
       moreRef.current?.abort();
       moreRef.current = null;
     };
-  }, [category, cleanQuery, attempt]);
+  }, [category, cleanQuery, requestKey]);
 
-  const requestMore = useCallback(
-    (isRetry: boolean) => {
-      const current = snapshot.state;
-      const active = snapshot.category;
+  const state = result.key === requestKey ? result.state : LOADING_STATE;
+
+  const loadMore = useCallback(
+    () => {
       if (
-        active === null ||
-        active !== category ||
-        snapshot.query !== cleanQuery ||
-        snapshot.attempt !== attempt ||
+        category === null ||
         moreRef.current !== null ||
-        current.status !== "success" ||
-        current.next === null ||
-        current.loadingMore ||
-        (current.moreError !== null && !isRetry)
+        state.status !== "success" ||
+        state.next === null ||
+        state.loadingMore
       )
         return;
 
-      const nextUrl = current.next;
       const controller = new AbortController();
       moreRef.current = controller;
-      setSnapshot({
-        ...snapshot,
-        state: { ...current, loadingMore: true, moreError: null },
+      setResult({
+        key: requestKey,
+        state: { ...state, loadingMore: true },
       });
-      void readCategoryPage(active, nextUrl, controller.signal).then(
+      void readCategoryPage(category, state.next, controller.signal).then(
         (page) => {
           if (controller.signal.aborted) return;
           if (moreRef.current === controller) moreRef.current = null;
-          setSnapshot((prev) => {
-            if (
-              prev.category !== active ||
-              prev.query !== cleanQuery ||
-              prev.attempt !== attempt
-            )
-              return prev;
-            const prevState = prev.state;
-            if (prevState.status !== "success" || prevState.next !== nextUrl)
-              return prev;
-            return {
-              ...prev,
-              state: {
-                ...prevState,
-                data: prevState.data.concat(page.data),
-                total: page.total,
-                next: page.next,
-                loadingMore: false,
-                moreError: null,
-              },
-            };
+          setResult({
+            key: requestKey,
+            state: {
+              status: "success",
+              data: state.data.concat(page.data),
+              total: page.total,
+              next: page.next,
+              loadingMore: false,
+            },
           });
         },
         (error: unknown) => {
           if (controller.signal.aborted) return;
           if (moreRef.current === controller) moreRef.current = null;
-          setSnapshot((prev) => {
-            if (
-              prev.category !== active ||
-              prev.query !== cleanQuery ||
-              prev.attempt !== attempt
-            )
-              return prev;
-            const prevState = prev.state;
-            if (prevState.status !== "success") return prev;
-            return {
-              ...prev,
-              state: {
-                ...prevState,
-                loadingMore: false,
-                moreError: errorMessage(error),
-              },
-            };
+          setResult({
+            key: requestKey,
+            state: { status: "error", message: errorMessage(error) },
           });
         },
       );
     },
-    [category, cleanQuery, attempt, snapshot],
+    [category, requestKey, state],
   );
-
-  const loadMore = useCallback(() => requestMore(false), [requestMore]);
-  const retryMore = useCallback(() => requestMore(true), [requestMore]);
-
-  const state: SearchState =
-    snapshot.category === category &&
-    snapshot.query === cleanQuery &&
-    snapshot.attempt === attempt
-      ? snapshot.state
-      : { status: "loading" };
 
   return {
     state,
-    retry: () => {
-      setSnapshot({
-        category,
-        query: cleanQuery,
-        attempt,
-        state: { status: "loading" },
-      });
-      setAttempt((value) => value + 1);
-    },
+    retry: () => setAttempt((value) => value + 1),
     loadMore,
-    retryMore,
   };
 }

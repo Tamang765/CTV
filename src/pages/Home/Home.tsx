@@ -1,10 +1,13 @@
-import { getCurrentFocusKey } from "@noriginmedia/norigin-spatial-navigation";
-import { useEffect, useRef } from "preact/hooks";
 import { Button } from "../../components/Button/Button";
+import { ErrorState } from "../../components/ErrorState/ErrorState";
 import { FocusButton, FocusRegion } from "../../components/Focusable/Focusable";
 import { Icon } from "../../components/Icon/Icon";
 import { CATEGORY_META } from "../../constants/categories";
-import { useHomeFeed, type FeedCategory } from "../../hooks/useHomeFeed";
+import {
+  useHomeFeed,
+  type FeedCategory,
+  type HomeFeedPage,
+} from "../../hooks/useHomeFeed";
 import type { Category } from "../../types/common";
 import type { Entity } from "../../types/entities";
 import { displayValue } from "../../utils/formatters";
@@ -30,22 +33,21 @@ export function Home({
   onOpenCategory: (category: Category) => void;
   onOpenEntity: (entity: Entity) => void;
 }) {
-  const feed = useHomeFeed();
-  const films = feed.films.state;
+  const { state, retry } = useHomeFeed();
+  const films = state.status === "success" ? state.feeds.films.data : [];
   const hero =
-    films.status === "success"
-      ? (films.data.find(
+    state.status === "success"
+      ? (films.find(
           (entity) =>
             entity.category === "films" && entity.attributes.episode === 4,
         ) ??
-        films.data[0] ??
+        films[0] ??
         null)
       : null;
 
   const entryKey = (category: FeedCategory) => {
-    const current = feed[category].state;
-    if (current.status === "error") return `retry-${category}`;
-    const first = current.status === "success" ? current.data[0] : undefined;
+    if (state.status !== "success") return "home-hero";
+    const first = state.feeds[category].data[0];
     return first ? homeItemKey(first) : `home-rail-${category}`;
   };
 
@@ -97,7 +99,9 @@ export function Home({
                     return false;
                   }
                   if (direction === "down") {
-                    focus(entryKey("films"));
+                    if (state.status === "error") focus("home-retry");
+                    else if (state.status === "success")
+                      focus(entryKey("films"));
                     return false;
                   }
                   return true;
@@ -110,28 +114,63 @@ export function Home({
           </div>
         </section>
         <div className={styles.feeds}>
-          {Categories.map((rail, railIndex) => (
-            <Rail
-              key={rail.category}
-              rail={rail}
-              prevKey={
-                railIndex === 0
-                  ? "home-hero"
-                  : entryKey(Categories[railIndex - 1]!.category)
-              }
-              nextKey={
-                railIndex + 1 < Categories.length
-                  ? entryKey(Categories[railIndex + 1]!.category)
-                  : null
-              }
-              feed={feed[rail.category]}
-              onOpenCategory={onOpenCategory}
-              onOpenEntity={onOpenEntity}
-            />
-          ))}
+          {state.status === "loading" && <HomeLoading />}
+          {state.status === "error" && (
+            <ErrorState title="We lost the signal." message={state.message}>
+              <Button
+                variant="primary"
+                id="home-retry"
+                onPress={() => {
+                  focus("home-hero");
+                  retry();
+                }}
+              >
+                <Icon name="reset" /> Try again
+              </Button>
+            </ErrorState>
+          )}
+          {state.status === "success" &&
+            Categories.map((rail, railIndex) => (
+              <Rail
+                key={rail.category}
+                rail={rail}
+                prevKey={
+                  railIndex === 0
+                    ? "home-hero"
+                    : entryKey(Categories[railIndex - 1]!.category)
+                }
+                nextKey={
+                  railIndex + 1 < Categories.length
+                    ? entryKey(Categories[railIndex + 1]!.category)
+                    : null
+                }
+                feed={state.feeds[rail.category]}
+                onOpenCategory={onOpenCategory}
+                onOpenEntity={onOpenEntity}
+              />
+            ))}
         </div>
       </div>
     </FocusRegion>
+  );
+}
+
+function HomeLoading() {
+  return (
+    <>
+      {Categories.map(({ category }) => (
+        <div key={category} className={styles.rail} aria-hidden="true">
+          <div className={styles.railHead}>
+            <h2>{CATEGORY_META[category].label}</h2>
+          </div>
+          <div className={styles.strip}>
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className={styles.skeletonPoster} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 
@@ -139,29 +178,21 @@ function Rail({
   rail,
   prevKey,
   nextKey,
-  feed: { state: feed, retry },
+  feed,
   onOpenCategory,
   onOpenEntity,
 }: {
   rail: (typeof Categories)[number];
   prevKey: string;
   nextKey: string | null;
-  feed: ReturnType<typeof useHomeFeed>["films"];
+  feed: HomeFeedPage;
   onOpenCategory: (category: Category) => void;
   onOpenEntity: (entity: Entity) => void;
 }) {
   const meta = CATEGORY_META[rail.category];
   const viewAllKey = `home-rail-${rail.category}`;
-  const retryPending = useRef(false);
-  const items = feed.status === "success" ? feed.data.slice(0, rail.limit) : [];
+  const items = feed.data.slice(0, rail.limit);
 
-  useEffect(() => {
-    if (!retryPending.current || feed.status === "loading") return;
-    retryPending.current = false;
-    if (getCurrentFocusKey() !== viewAllKey) return;
-    if (feed.status === "error") focus(`retry-${rail.category}`);
-    else if (feed.data[0]) focus(homeItemKey(feed.data[0]));
-  }, [feed, rail.category, viewAllKey]);
   const railArrows =
     (index: number, isLast: boolean) =>
     (direction: string): boolean => {
@@ -190,42 +221,14 @@ function Rail({
     >
       <div className={styles.railHead}>
         <h2>
-          {meta.label}
-          {feed.status === "success" && ` · ${feed.total} available`}
+          {meta.label} {feed.total} available
         </h2>
       </div>
-      {feed.status === "error" && (
-        <div className={styles.railError}>
-          <Icon name="alert" size={26} />
-          <span role="alert">{feed.message}</span>
-          <Button
-            variant="small"
-            id={`retry-${rail.category}`}
-            onArrow={railArrows(0, false)}
-            onPress={() => {
-              retryPending.current = true;
-              focus(viewAllKey);
-              retry();
-            }}
-          >
-            Try again
-          </Button>
-        </div>
-      )}
       <div
         className={styles.strip}
         data-scroll-region
         data-strip
-        aria-busy={feed.status === "loading"}
       >
-        {feed.status === "loading" &&
-          Array.from({ length: 4 }, (_, index) => (
-            <div
-              key={`loading-${index}`}
-              className={styles.skeletonPoster}
-              aria-hidden="true"
-            />
-          ))}
         {items.map((entity, index) => (
           <FocusButton
             key={homeItemKey(entity)}
@@ -255,16 +258,7 @@ function Rail({
           className={styles.seeAll}
           label={`View all ${meta.label.toLowerCase()}`}
           onPress={() => onOpenCategory(rail.category)}
-          onArrow={(direction) => {
-            if (
-              feed.status === "error" &&
-              (direction === "up" || direction === "left")
-            ) {
-              focus(`retry-${rail.category}`);
-              return false;
-            }
-            return railArrows(items.length, true)(direction);
-          }}
+          onArrow={railArrows(items.length, true)}
         >
           <span>View all {meta.label.toLowerCase()}</span>
           <Icon name="arrow" size={28} />

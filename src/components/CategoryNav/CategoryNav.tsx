@@ -7,17 +7,14 @@ import type { Category } from "../../types/common";
 
 export function CategoryNav({
   category,
-  invalidCategory,
-  showHome,
   onHome,
   onChoose,
 }: {
   category: Category | null;
-  invalidCategory: boolean;
-  showHome: boolean;
   onHome: () => void;
   onChoose: (category: Category) => void;
 }) {
+  const showHome = category === null;
   const rightArrow = (direction: string) => {
     if (direction === "right") {
       focus(category ? "search" : "home-hero");
@@ -49,7 +46,7 @@ export function CategoryNav({
             <span className={styles.navIndicator}>›</span>
           </FocusButton>
           {CATEGORIES.map((item) => {
-            const active = category === item && !invalidCategory;
+            const active = category === item;
             return (
               <FocusButton
                 key={item}

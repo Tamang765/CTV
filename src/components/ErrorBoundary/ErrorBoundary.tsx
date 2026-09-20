@@ -1,11 +1,11 @@
 import { Component, createRef, type ComponentChildren } from "preact";
-import { focus } from "../../utils/navigation";
 import { isBackKey } from "../../constants/keys";
+import ui from "../../styles/ui.module.css";
+import { focus, trapTab } from "../../utils/navigation";
 import { Button } from "../Button/Button";
 import { FocusRegion } from "../Focusable/Focusable";
 import { Icon } from "../Icon/Icon";
 import modalStyles from "../Modal/Modal.module.css";
-import ui from "../../styles/ui.module.css";
 import styles from "./ErrorBoundary.module.css";
 
 interface ErrorBoundaryState {
@@ -53,22 +53,8 @@ export class ErrorBoundary extends Component<
     window.removeEventListener("keydown", this.handleKey);
   }
   private handleKey = (event: KeyboardEvent) => {
-    if (event.key === "Tab") {
-      event.preventDefault();
-      const buttons = [
-        ...(this.dialogRef.current?.querySelectorAll<HTMLButtonElement>(
-          "button",
-        ) ?? []),
-      ];
-      const current = buttons.indexOf(
-        document.activeElement as HTMLButtonElement,
-      );
-      const next =
-        (current + (event.shiftKey ? -1 : 1) + buttons.length) %
-        buttons.length;
-      const key = buttons[next]?.dataset.focusKey;
-      if (key) focus(key);
-    } else if (isBackKey(event) || event.key === "Backspace") {
+    if (trapTab(event, this.dialogRef.current)) return;
+    if (isBackKey(event) || event.key === "Backspace") {
       event.preventDefault();
       if (this.props.dismiss) this.reset();
     }
@@ -98,7 +84,10 @@ export class ErrorBoundary extends Component<
             <p className={styles.errorMessage}>
               {this.props.message ?? this.state.message}
             </p>
-            <div className={ui.keyboardActions} style={{ justifyContent: "center" }}>
+            <div
+              className={ui.keyboardActions}
+              style={{ justifyContent: "center" }}
+            >
               {this.props.dismiss && (
                 <Button
                   variant="small"

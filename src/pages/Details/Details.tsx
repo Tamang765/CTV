@@ -1,6 +1,6 @@
-import type { Entity } from "../../types/entities";
 import { ErrorBoundary } from "../../components/ErrorBoundary/ErrorBoundary";
 import { DetailView } from "../../features/details/components/DetailView";
+import type { Entity } from "../../types/entities";
 
 export function Details({
   entity,

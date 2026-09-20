@@ -7,11 +7,7 @@ import {
   FocusRegion,
 } from "../../../components/Focusable/Focusable";
 import { Icon } from "../../../components/Icon/Icon";
-import {
-  Loading,
-  SkeletonRow,
-  Spinner,
-} from "../../../components/Loading/Loading";
+import { Loading, SkeletonRow } from "../../../components/Loading/Loading";
 import { GRID_COLUMNS } from "../../../navigation/navigation.constants";
 import ui from "../../../styles/ui.module.css";
 import type { Category } from "../../../types/common";
@@ -20,64 +16,34 @@ import { cardKey, focus } from "../../../utils/navigation";
 import type { SearchState } from "../hooks/useSearch";
 import searchStyles from "../styles/Search.module.css";
 
-export function ResultsHeader({
-  query,
-  label,
-  invalidCategory,
-  state,
-}: {
-  query: string;
-  label: string;
-  invalidCategory: boolean;
-  state: SearchState;
-}) {
-  const count =
-    invalidCategory || state.status !== "success" ? "—" : state.data.length;
+export function ResultsHeader({ query }: { query: string }) {
   return (
     <div className={searchStyles.resultsHeader}>
-      <h2>
-        {query ? `Results for “${query}”` : `All ${label}`} <span>{count}</span>
-      </h2>
-      <span aria-live="polite">{statusMessage(invalidCategory, state)}</span>
+      <h2>{query ? `Results for “${query}”` : ``}</h2>
     </div>
   );
-}
-
-function statusMessage(invalidCategory: boolean, state: SearchState): string {
-  if (invalidCategory) return "Invalid category";
-  if (state.status === "loading") return "Connecting to the archive…";
-  if (state.status === "error") return "Connection interrupted";
-  return `${state.data.length} of ${state.total} records`;
 }
 
 export function ResultsBody({
   category,
   state,
   query,
-  invalidCategory,
   label,
-  onReset,
   onRetry,
   onClearSearch,
   onOpen,
   onLoadMore,
-  onRetryMore,
 }: {
   category: Category;
   state: SearchState;
   query: string;
-  invalidCategory: boolean;
   label: string;
-  onReset: () => void;
   onRetry: () => void;
   onClearSearch: () => void;
   onOpen: (entity: Entity) => void;
   onLoadMore: () => void;
-  onRetryMore: () => void;
 }) {
-  if (invalidCategory) return <InvalidCategoryState onReset={onReset} />;
-  if (state.status === "loading") return <Loading />;
-  if (state.status === "error")
+  if (state.status === "error") {
     return (
       <ErrorState title="We lost the signal." message={state.message}>
         <Button
@@ -90,6 +56,8 @@ export function ResultsBody({
         </Button>
       </ErrorState>
     );
+  }
+  if (state.status === "loading") return <Loading />;
   if (state.data.length === 0)
     return (
       <EmptyState
@@ -117,29 +85,9 @@ export function ResultsBody({
       results={state.data}
       hasMore={state.next !== null}
       loading={state.loadingMore}
-      error={state.moreError}
-      onRetryMore={onRetryMore}
       onOpen={onOpen}
       onLoadMore={onLoadMore}
     />
-  );
-}
-
-function InvalidCategoryState({ onReset }: { onReset: () => void }) {
-  return (
-    <ErrorState
-      title="Unknown category"
-      message="This category does not exist. Choose one from the menu to continue."
-    >
-      <Button
-        variant="primary"
-        id="reset-category"
-        onPress={onReset}
-        label="Return home"
-      >
-        Go home <Icon name="arrow" />
-      </Button>
-    </ErrorState>
   );
 }
 
@@ -148,8 +96,6 @@ function ResultsGrid({
   results,
   hasMore,
   loading,
-  error,
-  onRetryMore,
   onOpen,
   onLoadMore,
 }: {
@@ -157,12 +103,14 @@ function ResultsGrid({
   results: Entity[];
   hasMore: boolean;
   loading: boolean;
-  error: string | null;
-  onRetryMore: () => void;
   onOpen: (entity: Entity) => void;
   onLoadMore: () => void;
 }) {
   const last = results[results.length - 1];
+  const loadFromControl = () => {
+    if (last) focus(cardKey(last));
+    onLoadMore();
+  };
   return (
     <FocusRegion
       id={`grid-${category}`}
@@ -187,29 +135,23 @@ function ResultsGrid({
             return true;
           }}
           onFocus={
-            hasMore && !error && index >= results.length - GRID_COLUMNS
+            hasMore && index >= results.length - GRID_COLUMNS
               ? onLoadMore
               : undefined
           }
         />
       ))}
       {hasMore && loading && (
-        <SkeletonRow key="skeleton-row" count={GRID_COLUMNS} />
+        <SkeletonRow key="pagination-skeleton" count={GRID_COLUMNS} />
       )}
-      {error && <p role="alert">{error}</p>}
       {hasMore && (
         <FocusButton
+          key="load-more"
           id="load-more"
           className={searchStyles.loadMore}
-          label={
-            loading
-              ? "Loading more results"
-              : error
-                ? "Retry loading more results"
-                : "More results below"
-          }
-          onPress={error ? onRetryMore : onLoadMore}
-          onFocus={error ? undefined : onLoadMore}
+          label={loading ? "Loading more results" : "More results below"}
+          onPress={loadFromControl}
+          onFocus={loadFromControl}
           onArrow={(direction) => {
             if (direction === "up" && last) {
               focus(cardKey(last));
@@ -218,12 +160,7 @@ function ResultsGrid({
             return true;
           }}
         >
-          {loading && <Spinner />}
-          {loading
-            ? "Loading more…"
-            : error
-              ? "Try again"
-              : "More results below"}
+          {loading ? "Loading more…" : "More results below"}
         </FocusButton>
       )}
     </FocusRegion>

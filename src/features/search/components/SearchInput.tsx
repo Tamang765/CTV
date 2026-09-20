@@ -1,9 +1,9 @@
-import type { Category } from "../../../types/common";
-import type { SearchState } from "../hooks/useSearch";
-import { cardKey, focus } from "../../../utils/navigation";
 import { Button } from "../../../components/Button/Button";
 import { FocusButton } from "../../../components/Focusable/Focusable";
 import { Icon } from "../../../components/Icon/Icon";
+import type { Category } from "../../../types/common";
+import { cardKey, focus } from "../../../utils/navigation";
+import type { SearchState } from "../hooks/useSearch";
 import searchStyles from "../styles/Search.module.css";
 
 export function SearchInput({
@@ -11,7 +11,6 @@ export function SearchInput({
   query,
   label,
   state,
-  invalidCategory,
   onSearch,
   onClear,
 }: {
@@ -19,17 +18,12 @@ export function SearchInput({
   query: string;
   label: string;
   state: SearchState;
-  invalidCategory: boolean;
   onSearch: () => void;
   onClear: () => void;
 }) {
   const first = state.status === "success" ? state.data[0] : undefined;
   const firstResultKey = first ? cardKey(first) : undefined;
   const goToResults = (): boolean => {
-    if (invalidCategory) {
-      focus("reset-category");
-      return true;
-    }
     if (state.status === "error") {
       focus("retry");
       return true;
@@ -76,7 +70,7 @@ export function SearchInput({
       )}
       <span className={searchStyles.collectionLabel}>
         <Icon name="grid" size={23} />{" "}
-        {query ? "SEARCH RESULTS" : "ALL RECORDS"}
+        {query ? "SEARCH RESULTS" : `ALL ${label.toUpperCase()}`}
       </span>
     </div>
   );

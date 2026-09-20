@@ -208,20 +208,6 @@
     box-shadow 0.18s ease,
     border-color 0.14s;
 }
-.railError {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 14px 18px;
-  border: 1px solid var(--alert-border);
-  border-radius: 8px;
-  background: var(--alert-surface);
-  color: var(--alert-text);
-  font-size: 21px;
-}
-.railError > span {
-  flex: 1;
-}
 .skeletonPoster {
   flex-shrink: 0;
   width: 248px;

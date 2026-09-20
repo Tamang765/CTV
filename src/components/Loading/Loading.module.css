@@ -26,21 +26,8 @@
 .skeletonRow {
   display: contents;
 }
-.spinner {
-  width: 23px;
-  height: 23px;
-  border: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
 @keyframes pulse {
   to {
     opacity: 0.45;
-  }
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }

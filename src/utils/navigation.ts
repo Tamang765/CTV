@@ -3,6 +3,12 @@ import {
   setFocus,
 } from "@noriginmedia/norigin-spatial-navigation";
 import type { Entity } from "../types/entities";
+import {
+  computeScrollTarget,
+  type ScaledBox,
+  type ScrollRegionMetrics,
+  type ScrollTarget,
+} from "./scrollGeometry";
 
 export const cardKey = (entity: Entity) =>
   `card-${entity.category}-${entity.id}`;
@@ -30,42 +36,85 @@ export function trapTab(event: KeyboardEvent, container: HTMLElement | null) {
       ? event.shiftKey
         ? buttons.length - 1
         : 0
-      : (current + (event.shiftKey ? -1 : 1) + buttons.length) %
-        buttons.length;
+      : (current + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length;
   const key = buttons[next]?.dataset.focusKey;
   if (key) focus(key);
   return true;
 }
 
-export function reveal(node: HTMLElement) {
-  const nodeBox = node.getBoundingClientRect();
-  const strip = node.closest("[data-strip]");
-  const header = strip?.parentElement?.firstElementChild as HTMLElement | null;
-  const headerBox =
-    header && header !== strip ? header.getBoundingClientRect() : null;
-  const heroSection = node.closest("[data-hero]");
-  const top = heroSection
-    ? heroSection.getBoundingClientRect().top
-    : headerBox && headerBox.bottom <= nodeBox.top + 4
-      ? headerBox.top
-      : nodeBox.top;
-  let container = node.parentElement;
-  while (container) {
-    if (container.hasAttribute("data-scroll-region")) {
-      const viewport = container.getBoundingClientRect();
-      const scale = viewport.height / container.clientHeight;
-      if (container.clientHeight < container.scrollHeight) {
-        if (top < viewport.top + 8 * scale)
-          container.scrollTop += (top - viewport.top) / scale - 8;
-        else if (nodeBox.bottom > viewport.bottom - 8 * scale)
-          container.scrollTop += (nodeBox.bottom - viewport.bottom) / scale + 8;
-      }
-      const xScale = viewport.width / container.clientWidth;
-      if (nodeBox.left < viewport.left + 16 * xScale)
-        container.scrollLeft += (nodeBox.left - viewport.left) / xScale - 16;
-      else if (nodeBox.right > viewport.right - 16 * xScale)
-        container.scrollLeft += (nodeBox.right - viewport.right) / xScale + 16;
-    }
-    container = container.parentElement;
+export function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "auto"
+    : "smooth";
+}
+
+const toBox = (element: Element): ScaledBox => {
+  const rect = element.getBoundingClientRect();
+  return {
+    left: rect.left,
+    right: rect.right,
+    top: rect.top,
+    bottom: rect.bottom,
+  };
+};
+
+// Resolves how a focused node should be revealed inside one scroll region
+// based on the region's declared axis/mode metadata.
+function resolveTarget(
+  container: HTMLElement,
+  node: HTMLElement,
+): ScrollTarget | null {
+  const axis = container.dataset.scrollAxis === "x" ? "x" : "y";
+  const mode = container.dataset.scrollMode;
+  if (mode === "manual") return null;
+  if (mode === "home" && axis === "y") {
+    const hero = node.closest("[data-hero]");
+    if (hero) return { axis, align: "start", box: toBox(hero), offset: 0 };
+    const heading = node.closest("[data-strip]")?.parentElement
+      ?.firstElementChild;
+    if (heading instanceof HTMLElement)
+      return { axis, align: "start", box: toBox(heading), offset: 16 };
+    return { axis, align: "contain", box: toBox(node), offset: 16 };
   }
+  const offset = mode === "rail" ? 20 : mode === "grid" ? 16 : 0;
+  return { axis, align: "contain", box: toBox(node), offset };
+}
+
+function revealRegion(container: HTMLElement, node: HTMLElement) {
+  const target = resolveTarget(container, node);
+  if (!target) return;
+  const rect = container.getBoundingClientRect();
+  const scale =
+    target.axis === "x"
+      ? rect.width / container.clientWidth
+      : rect.height / container.clientHeight;
+  const metrics: ScrollRegionMetrics = {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    clientWidth: container.clientWidth,
+    clientHeight: container.clientHeight,
+    scrollWidth: container.scrollWidth,
+    scrollHeight: container.scrollHeight,
+    scrollLeft: container.scrollLeft,
+    scrollTop: container.scrollTop,
+  };
+  const { left, top, changed } = computeScrollTarget(metrics, target, scale);
+  if (changed) container.scrollTo({ left, top, behavior: scrollBehavior() });
+}
+
+let pendingReveal = 0;
+
+export function reveal(node: HTMLElement) {
+  cancelAnimationFrame(pendingReveal);
+  pendingReveal = requestAnimationFrame(() => {
+    pendingReveal = 0;
+    let container = node.parentElement;
+    while (container) {
+      if (container.hasAttribute("data-scroll-region"))
+        revealRegion(container, node);
+      container = container.parentElement;
+    }
+  });
 }

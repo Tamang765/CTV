@@ -26,6 +26,13 @@ const Categories: {
 const art = (category: string) =>
   `${import.meta.env.BASE_URL}assets/images/categories/${category}.svg`;
 
+// Ordered focus keys for a rail, including the trailing "View all" control.
+const homeRailKeys = (
+  category: FeedCategory,
+  feed: HomeFeedPage,
+  limit: number,
+) => [...feed.data.slice(0, limit).map(homeItemKey), `home-rail-${category}`];
+
 export function Home({
   onOpenCategory,
   onOpenEntity,
@@ -45,11 +52,19 @@ export function Home({
         null)
       : null;
 
-  const entryKey = (category: FeedCategory) => {
-    if (state.status !== "success") return "home-hero";
-    const first = state.feeds[category].data[0];
-    return first ? homeItemKey(first) : `home-rail-${category}`;
-  };
+  const railData =
+    state.status === "success"
+      ? Categories.map((rail) => {
+          const feed = state.feeds[rail.category];
+          return {
+            ...rail,
+            feed,
+            keys: homeRailKeys(rail.category, feed, rail.limit),
+          };
+        })
+      : [];
+
+  const firstRailEntry = railData[0]?.keys[0] ?? "home-rail-films";
 
   return (
     <FocusRegion
@@ -58,7 +73,12 @@ export function Home({
       preferred="home-hero"
       label="Home"
     >
-      <div className={styles.scroll} data-scroll-region>
+      <div
+        className={styles.scroll}
+        data-scroll-region
+        data-scroll-axis="y"
+        data-scroll-mode="home"
+      >
         <section
           className={styles.hero}
           data-hero
@@ -101,7 +121,7 @@ export function Home({
                   if (direction === "down") {
                     if (state.status === "error") focus("home-retry");
                     else if (state.status === "success")
-                      focus(entryKey("films"));
+                      focus(firstRailEntry);
                     return false;
                   }
                   return true;
@@ -130,21 +150,18 @@ export function Home({
             </ErrorState>
           )}
           {state.status === "success" &&
-            Categories.map((rail, railIndex) => (
+            railData.map((rail, railIndex) => (
               <Rail
                 key={rail.category}
                 rail={rail}
-                prevKey={
-                  railIndex === 0
-                    ? "home-hero"
-                    : entryKey(Categories[railIndex - 1]!.category)
+                prevKeys={
+                  railIndex === 0 ? ["home-hero"] : railData[railIndex - 1]!.keys
                 }
-                nextKey={
-                  railIndex + 1 < Categories.length
-                    ? entryKey(Categories[railIndex + 1]!.category)
+                nextKeys={
+                  railIndex + 1 < railData.length
+                    ? railData[railIndex + 1]!.keys
                     : null
                 }
-                feed={state.feeds[rail.category]}
                 onOpenCategory={onOpenCategory}
                 onOpenEntity={onOpenEntity}
               />
@@ -164,7 +181,7 @@ function HomeLoading() {
             <h2>{CATEGORY_META[category].label}</h2>
           </div>
           <div className={styles.strip}>
-            {Array.from({ length: 4 }, (_, index) => (
+            {Array.from({ length: 6 }, (_, index) => (
               <div key={index} className={styles.skeletonPoster} />
             ))}
           </div>
@@ -176,42 +193,59 @@ function HomeLoading() {
 
 function Rail({
   rail,
-  prevKey,
-  nextKey,
-  feed,
+  prevKeys,
+  nextKeys,
   onOpenCategory,
   onOpenEntity,
 }: {
-  rail: (typeof Categories)[number];
-  prevKey: string;
-  nextKey: string | null;
-  feed: HomeFeedPage;
+  rail: {
+    category: FeedCategory;
+    limit: number;
+    feed: HomeFeedPage;
+    keys: string[];
+  };
+  prevKeys: string[];
+  nextKeys: string[] | null;
   onOpenCategory: (category: Category) => void;
   onOpenEntity: (entity: Entity) => void;
 }) {
   const meta = CATEGORY_META[rail.category];
   const viewAllKey = `home-rail-${rail.category}`;
-  const items = feed.data.slice(0, rail.limit);
+  const items = rail.feed.data.slice(0, rail.limit);
 
-  const railArrows =
-    (index: number, isLast: boolean) =>
-    (direction: string): boolean => {
-      if (nextKey && direction === "down") {
-        focus(nextKey);
-        return false;
-      }
-      if (direction === "down" && !nextKey) return true;
-      if (direction === "up") {
-        focus(prevKey);
-        return false;
-      }
-      if (direction === "left" && index === 0) {
+  // Nearest equivalent index in the adjacent rail, clamped when it is shorter.
+  const closest = (keys: string[], index: number) =>
+    keys[Math.min(index, keys.length - 1)];
+
+  const railArrows = (index: number) => (direction: string): boolean => {
+    if (direction === "down") {
+      if (!nextKeys) return true;
+      const key = closest(nextKeys, index);
+      if (key) focus(key);
+      return false;
+    }
+    if (direction === "up") {
+      const key = closest(prevKeys, index);
+      if (key) focus(key);
+      return false;
+    }
+    if (direction === "left") {
+      if (index === 0) {
         focus("nav-home");
         return false;
       }
-      if (direction === "right" && isLast) return false;
-      return true;
-    };
+      const key = rail.keys[index - 1];
+      if (key) focus(key);
+      return false;
+    }
+    if (direction === "right") {
+      const key = rail.keys[index + 1];
+      if (!key) return false;
+      focus(key);
+      return false;
+    }
+    return true;
+  };
 
   return (
     <FocusRegion
@@ -220,14 +254,14 @@ function Rail({
       label={`${rail.category} rail`}
     >
       <div className={styles.railHead}>
-        <h2>
-          {meta.label} {feed.total} available
-        </h2>
+        <h2>{meta.label}</h2>
       </div>
       <div
         className={styles.strip}
         data-scroll-region
         data-strip
+        data-scroll-axis="x"
+        data-scroll-mode="rail"
       >
         {items.map((entity, index) => (
           <FocusButton
@@ -236,7 +270,7 @@ function Rail({
             className={styles.poster}
             label={`Open ${entity.name}`}
             onPress={() => onOpenEntity(entity)}
-            onArrow={railArrows(index, false)}
+            onArrow={railArrows(index)}
           >
             <img
               className={styles.posterArt}
@@ -258,7 +292,7 @@ function Rail({
           className={styles.seeAll}
           label={`View all ${meta.label.toLowerCase()}`}
           onPress={() => onOpenCategory(rail.category)}
-          onArrow={railArrows(items.length, true)}
+          onArrow={railArrows(items.length)}
         >
           <span>View all {meta.label.toLowerCase()}</span>
           <Icon name="arrow" size={28} />

@@ -28,7 +28,7 @@ export function App() {
 
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
-      focus(category ? `nav-${category}` : "nav-home"),
+      focus(category ? "search" : "home-hero"),
     );
     return () => cancelAnimationFrame(frame);
   }, [category]);
@@ -76,50 +76,52 @@ export function App() {
     setSelected(entity);
   };
 
+  // Details and search render over the browse screen, which stays mounted so
+  // grid/rail scroll offsets and the last-focused child survive. Closing
+  // details therefore returns focus to an already-visible card without
+  // scrolling the background.
+  const backgroundHidden = searchOpen || selected !== null;
+
   return (
     <div className={styles.viewport}>
       <div
         className={styles.stage}
         style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
       >
-        {selected ? (
-          <Details entity={selected} onBack={closeDetails} />
-        ) : (
-          <div
-            className={styles.application}
-            inert={searchOpen}
-            aria-hidden={searchOpen || undefined}
-          >
-            <CategoryNav
-              category={category}
-              onHome={goHome}
-              onChoose={chooseCategory}
-            />
-            <main className={styles.main}>
-              <Header />
-              {category === null ? (
-                <Home
-                  onOpenCategory={chooseCategory}
-                  onOpenEntity={openHomeEntity}
-                />
-              ) : (
-                <Category
-                  category={category}
-                  query={query}
-                  state={state}
-                  onSearch={() => setSearchOpen(true)}
-                  onClearSearch={clearQuery}
-                  onRetry={retry}
-                  onOpenEntity={(entity) => {
-                    returnFocus.current = cardKey(entity);
-                    setSelected(entity);
-                  }}
-                  onLoadMore={loadMore}
-                />
-              )}
-            </main>
-          </div>
-        )}
+        <div
+          className={styles.application}
+          inert={backgroundHidden}
+          aria-hidden={backgroundHidden || undefined}
+        >
+          <CategoryNav
+            category={category}
+            onHome={goHome}
+            onChoose={chooseCategory}
+          />
+          <main className={styles.main}>
+            <Header />
+            {category === null ? (
+              <Home
+                onOpenCategory={chooseCategory}
+                onOpenEntity={openHomeEntity}
+              />
+            ) : (
+              <Category
+                category={category}
+                query={query}
+                state={state}
+                onSearch={() => setSearchOpen(true)}
+                onClearSearch={clearQuery}
+                onRetry={retry}
+                onOpenEntity={(entity) => {
+                  returnFocus.current = cardKey(entity);
+                  setSelected(entity);
+                }}
+                onLoadMore={loadMore}
+              />
+            )}
+          </main>
+        </div>
         {category && searchOpen && (
           <Search
             category={category}
@@ -131,6 +133,7 @@ export function App() {
             onClose={closeSearch}
           />
         )}
+        {selected && <Details entity={selected} onBack={closeDetails} />}
       </div>
     </div>
   );

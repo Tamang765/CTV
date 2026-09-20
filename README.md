@@ -17,14 +17,14 @@ npm run dev
 Open the local URL printed by Vite. The stage scales down for smaller browser
 windows; the design target is 1920×1080.
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run lint` | Check source with ESLint |
-| `npm run typecheck` | Check TypeScript |
-| `npm run build` | Typecheck and create the production build in `dist/` |
-| `npm run check` | Run lint and the production build |
-| `npm run preview` | Preview the production build locally |
+| Command             | Purpose                                              |
+| ------------------- | ---------------------------------------------------- |
+| `npm run dev`       | Start the development server                         |
+| `npm run lint`      | Check source with ESLint                             |
+| `npm run typecheck` | Check TypeScript                                     |
+| `npm run build`     | Typecheck and create the production build in `dist/` |
+| `npm run check`     | Run lint and the production build                    |
+| `npm run preview`   | Preview the production build locally                 |
 
 ## API configuration
 
@@ -41,14 +41,14 @@ the page number from the API's next link.
 
 ## Remote and keyboard controls
 
-| Input | Behavior |
-| --- | --- |
-| Arrow keys / D-pad | Move focus between categories, controls, and records |
-| Enter / OK | Activate the focused control or open a record |
-| Escape / BrowserBack | Close search or details; otherwise clear an active search, then return from the category to Home |
-| Backspace | Delete a character in the search keyboard; act as Back elsewhere |
-| Up / Down in details | Scroll the attributes and film opening crawl while Back stays focused |
-| Letters, numbers, space, hyphen, apostrophe | Type into the search keyboard while it is open |
+| Input                                       | Behavior                                                                                         |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Arrow keys / D-pad                          | Move focus between categories, controls, and records                                             |
+| Enter / OK                                  | Activate the focused control or open a record                                                    |
+| Escape / BrowserBack                        | Close search or details; otherwise clear an active search, then return from the category to Home |
+| Backspace                                   | Delete a character in the search keyboard; act as Back elsewhere                                 |
+| Up / Down in details                        | Scroll the attributes and film opening crawl while Back stays focused                            |
+| Letters, numbers, space, hyphen, apostrophe | Type into the search keyboard while it is open                                                   |
 
 Select a category, move Right to Search, and press OK to open the on-screen
 keyboard. Enter a query and choose **Show results**. Cancel discards edits.
@@ -69,9 +69,9 @@ Clearing it returns to browsing that category. Back on Home is left to the host.
   Home uses these pages for previews and the API's total for availability counts.
   Search results and subsequent pages are not globally cached. Reloading clears
   the cache; no persistent cache or background refresh is used.
-- Preact local state owns screens and search data. Opening details preserves the
-  current results. Results DOM listeners belong to the category screen and are
-  reattached when returning from details.
+- Preact local state owns screens and search data. Details and search render over
+  the browse screen, which stays mounted, so results, scroll position, and DOM
+  listeners persist while they are open.
 - Norigin owns spatial navigation. Shared focus primitives register controls,
   establish boundaries, synchronize DOM focus, and reveal off-screen items.
   Stable resource IDs restore the originating card after details close.
@@ -109,4 +109,4 @@ include the actual links with the assessment submission once published.
 OpenAI Codex assisted with the code review, API consolidation, navigation and
 lifecycle fixes, removal of redundant wrappers, readability changes, documentation,
 and verification of this revision. This disclosure describes the current revision;
-it does not make claims about AI usage in the original implementation.
+OpenAI assisted with creating the components and CSS.

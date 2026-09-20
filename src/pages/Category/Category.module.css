@@ -39,7 +39,5 @@
   overflow-x: hidden;
   padding: 14px 14px 16px;
   margin: -14px -14px 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--secondary-soft) transparent;
   overscroll-behavior: contain;
 }

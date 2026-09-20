@@ -114,11 +114,7 @@ export function SearchKeyboard({
         >
           ’
         </Button>
-        <Button
-          variant="small"
-          id="key-delete"
-          onPress={remove}
-        >
+        <Button variant="small" id="key-delete" onPress={remove}>
           ⌫ Delete
         </Button>
         <Button variant="small" id="key-clear" onPress={() => setDraft("")}>

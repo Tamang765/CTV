@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { FocusRegion } from "../../../components/Focusable/Focusable";
 import { CATEGORY_META } from "../../../constants/categories";
 import type { Entity } from "../../../types/entities";
 import { displayValue, entityStats } from "../../../utils/formatters";
-import { focus } from "../../../utils/navigation";
-import { FocusRegion } from "../../../components/Focusable/Focusable";
-import { DetailActions } from "./DetailActions";
+import { focus, scrollBehavior } from "../../../utils/navigation";
 import styles from "../styles/DetailView.module.css";
+import { DetailActions } from "./DetailActions";
 
 export function DetailView({
   entity,
@@ -20,7 +20,8 @@ export function DetailView({
   useLayoutEffect(() => {
     const body = bodyRef.current;
     if (!body) return;
-    const measure = () => setCanScroll(body.scrollHeight > body.clientHeight + 1);
+    const measure = () =>
+      setCanScroll(body.scrollHeight > body.clientHeight + 1);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(body);
@@ -35,7 +36,10 @@ export function DetailView({
 
   const scrollBody = (direction: string) => {
     if (direction !== "up" && direction !== "down") return true;
-    bodyRef.current?.scrollBy({ top: direction === "down" ? 260 : -260 });
+    bodyRef.current?.scrollBy({
+      top: direction === "down" ? 260 : -260,
+      behavior: scrollBehavior(),
+    });
     return false;
   };
 
@@ -70,7 +74,13 @@ export function DetailView({
         />
         <h1 id="detail-title">{entity.name}</h1>
         <p className={styles.summary}>{displayValue(entity.summary)}</p>
-        <div className={styles.body} ref={bodyRef} data-scroll-region>
+        <div
+          className={styles.body}
+          ref={bodyRef}
+          data-scroll-region
+          data-scroll-axis="y"
+          data-scroll-mode="manual"
+        >
           <dl className={styles.stats}>
             {entityStats(entity).map((item) => (
               <div key={item.label}>

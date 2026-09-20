@@ -1,6 +1,7 @@
 .page {
   position: absolute;
   inset: 0;
+  z-index: 6;
   display: flex;
   background: var(--surface-contrast);
 }
@@ -75,9 +76,6 @@
   overflow-y: auto;
   margin-top: 28px;
   padding-right: 14px;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--accent) 55%, transparent)
-    var(--surface-contrast);
   overscroll-behavior: contain;
 }
 .stats {

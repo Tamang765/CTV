@@ -1,9 +1,9 @@
 import { CATEGORIES, CATEGORY_META } from "../../constants/categories";
+import type { Category } from "../../types/common";
 import { focus } from "../../utils/navigation";
 import { FocusButton, FocusRegion } from "../Focusable/Focusable";
 import { Icon } from "../Icon/Icon";
 import styles from "./CategoryNav.module.css";
-import type { Category } from "../../types/common";
 
 export function CategoryNav({
   category,

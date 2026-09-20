@@ -51,7 +51,8 @@ export function Category({
     if (current === "retry" && state.status !== "error") focus("search");
   }, [state.status]);
 
-  // This listener belongs to the results DOM, which remounts after details.
+  // Details renders over this screen without unmounting it, so the listener
+  // and the current scroll position persist across open/close.
   useEffect(() => {
     const container = resultsRef.current;
     if (!container || !hasMore) return;
@@ -89,6 +90,8 @@ export function Category({
           className={styles.results}
           ref={resultsRef}
           data-scroll-region
+          data-scroll-axis="y"
+          data-scroll-mode="grid"
           aria-busy={showLoading}
           aria-label={`${meta.label} results`}
         >

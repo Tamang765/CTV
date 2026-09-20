@@ -9,8 +9,6 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--secondary-soft) transparent;
   overscroll-behavior: contain;
 }
 .hero {
@@ -18,6 +16,7 @@
   overflow: hidden;
   height: 330px;
   border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 26px;
 }
 .heroArt {
   width: 100%;
@@ -95,23 +94,13 @@
   font-weight: 600;
   letter-spacing: -0.8px;
 }
-.railHead span {
-  color: var(--text-muted);
-  font-size: 16px;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-}
 .strip {
   display: flex;
   gap: 26px;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: none;
-  padding: 44px 22px 20px;
+  padding: 24px 20px 20px;
   overscroll-behavior: contain;
-}
-.strip::-webkit-scrollbar {
-  display: none;
 }
 .poster {
   position: relative;
@@ -140,11 +129,7 @@
 .posterShade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.6) 0,
-    transparent 55%
-  );
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0, transparent 55%);
 }
 .posterInfo {
   position: absolute;
@@ -179,6 +164,7 @@
   border-color: var(--accent);
   box-shadow: 0 16px 40px var(--shadow-strong);
   outline-offset: 0;
+  display: flex;
 }
 .poster:active,
 .seeAll:active {
@@ -198,7 +184,7 @@
   border: 1px dashed var(--border-muted);
   border-radius: 10px;
   background: color-mix(in srgb, var(--accent) 5%, var(--surface-soft));
-  color: var(--accent-soft);
+  color: var(--text);
   font-size: 26px;
   font-weight: 600;
   letter-spacing: 0.3px;

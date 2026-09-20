@@ -1,3 +1,13 @@
 @import "./variables.css";
 @import "./reset.css";
 @import "./tv.css";
+
+/* Focus-driven scrolling keeps overflow active for wheel/touchpad input but
+   hides scrollbar chrome on every declared scroll region. */
+[data-scroll-region] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+[data-scroll-region]::-webkit-scrollbar {
+  display: none;
+}

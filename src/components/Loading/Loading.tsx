@@ -11,7 +11,7 @@ export function Loading() {
   );
 }
 
-export function SkeletonCard() {
+function SkeletonCard() {
   return (
     <div className={styles.skeleton}>
       <div />

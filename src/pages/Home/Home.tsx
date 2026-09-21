@@ -101,11 +101,9 @@ export function Home({
               </>
             ) : (
               <>
-                <p className={styles.heroKicker}>THE COLLECTION</p>
-                <h1 id="home-heading">Explore the archive.</h1>
-                <p className={styles.heroText}>
-                  Six collections of records are waiting to be rediscovered.
-                </p>
+                <p className={styles.heroKicker}></p>
+                <h1 id="home-heading"></h1>
+                <p className={styles.heroText}></p>
               </>
             )}
             <div className={styles.heroActions}>
@@ -120,8 +118,7 @@ export function Home({
                   }
                   if (direction === "down") {
                     if (state.status === "error") focus("home-retry");
-                    else if (state.status === "success")
-                      focus(firstRailEntry);
+                    else if (state.status === "success") focus(firstRailEntry);
                     return false;
                   }
                   return true;
@@ -155,7 +152,9 @@ export function Home({
                 key={rail.category}
                 rail={rail}
                 prevKeys={
-                  railIndex === 0 ? ["home-hero"] : railData[railIndex - 1]!.keys
+                  railIndex === 0
+                    ? ["home-hero"]
+                    : railData[railIndex - 1]!.keys
                 }
                 nextKeys={
                   railIndex + 1 < railData.length
@@ -217,35 +216,37 @@ function Rail({
   const closest = (keys: string[], index: number) =>
     keys[Math.min(index, keys.length - 1)];
 
-  const railArrows = (index: number) => (direction: string): boolean => {
-    if (direction === "down") {
-      if (!nextKeys) return true;
-      const key = closest(nextKeys, index);
-      if (key) focus(key);
-      return false;
-    }
-    if (direction === "up") {
-      const key = closest(prevKeys, index);
-      if (key) focus(key);
-      return false;
-    }
-    if (direction === "left") {
-      if (index === 0) {
-        focus("nav-home");
+  const railArrows =
+    (index: number) =>
+    (direction: string): boolean => {
+      if (direction === "down") {
+        if (!nextKeys) return true;
+        const key = closest(nextKeys, index);
+        if (key) focus(key);
         return false;
       }
-      const key = rail.keys[index - 1];
-      if (key) focus(key);
-      return false;
-    }
-    if (direction === "right") {
-      const key = rail.keys[index + 1];
-      if (!key) return false;
-      focus(key);
-      return false;
-    }
-    return true;
-  };
+      if (direction === "up") {
+        const key = closest(prevKeys, index);
+        if (key) focus(key);
+        return false;
+      }
+      if (direction === "left") {
+        if (index === 0) {
+          focus("nav-home");
+          return false;
+        }
+        const key = rail.keys[index - 1];
+        if (key) focus(key);
+        return false;
+      }
+      if (direction === "right") {
+        const key = rail.keys[index + 1];
+        if (!key) return false;
+        focus(key);
+        return false;
+      }
+      return true;
+    };
 
   return (
     <FocusRegion

@@ -110,3 +110,5 @@ OpenAI Codex assisted with the code review, API consolidation, navigation and
 lifecycle fixes, removal of redundant wrappers, readability changes, documentation,
 and verification of this revision. This disclosure describes the current revision;
 OpenAI assisted with creating the components and CSS.
+
+Images used from last project created by ai
